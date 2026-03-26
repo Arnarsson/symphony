@@ -40,6 +40,7 @@ defmodule SymphonyElixir.Tracker do
   def adapter do
     case Config.settings!().tracker.kind do
       "github" -> SymphonyElixir.GitHub.Adapter
+      "delegation" -> SymphonyElixir.Delegation.Adapter
       "memory" -> SymphonyElixir.Tracker.Memory
       _ -> SymphonyElixir.Linear.Adapter
     end

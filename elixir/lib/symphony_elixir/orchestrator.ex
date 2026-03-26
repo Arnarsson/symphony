@@ -230,6 +230,7 @@ defmodule SymphonyElixir.Orchestrator do
 
     with :ok <- Config.validate!(),
          {:ok, issues} <- Tracker.fetch_candidate_issues(),
+         issues <- merge_delegated_tasks(issues),
          true <- available_slots(state) > 0 do
       choose_issues(issues, state)
     else
@@ -273,6 +274,22 @@ defmodule SymphonyElixir.Orchestrator do
 
       false ->
         state
+    end
+  end
+
+  # When tracker.kind != "delegation", also pull queued delegated tasks
+  # so external agents can always delegate work regardless of primary tracker.
+  defp merge_delegated_tasks(issues) do
+    case Config.settings!().tracker.kind do
+      "delegation" ->
+        # Delegation adapter already provides these
+        issues
+
+      _ ->
+        case SymphonyElixir.Delegation.Adapter.fetch_candidate_issues() do
+          {:ok, delegated} -> issues ++ delegated
+          _ -> issues
+        end
     end
   end
 
@@ -703,6 +720,7 @@ defmodule SymphonyElixir.Orchestrator do
 
         Logger.info("Dispatching issue to agent: #{issue_context(issue)} pid=#{inspect(pid)} attempt=#{inspect(attempt)} worker_host=#{worker_host || "local"}")
         Telemetry.emit_dispatch(%{issue_id: issue.id, identifier: issue.identifier})
+        persist_async(fn -> SymphonyElixir.Delegation.mark_claimed(issue.id) end)
 
         running =
           Map.put(state.running, issue.id, %{
@@ -779,6 +797,7 @@ defmodule SymphonyElixir.Orchestrator do
   defp complete_issue(%State{} = state, issue_id) do
     Telemetry.emit_complete(%{issue_id: issue_id})
     persist_async(fn -> Persistence.mark_issue_completed(issue_id) end)
+    persist_async(fn -> SymphonyElixir.Delegation.mark_completed(issue_id) end)
 
     %{
       state

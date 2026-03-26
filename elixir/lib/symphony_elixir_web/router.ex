@@ -34,6 +34,14 @@ defmodule SymphonyElixirWeb.Router do
     get("/metrics", MetricsController, :index)
   end
 
+  # Delegation API for external agents (Eureka, OpenClaw, etc.)
+  scope "/api/v1/delegate", SymphonyElixirWeb do
+    post("/", DelegationController, :create)
+    get("/", DelegationController, :index)
+    get("/:id", DelegationController, :show)
+    delete("/:id", DelegationController, :delete)
+  end
+
   scope "/", SymphonyElixirWeb do
     get("/api/v1/state", ObservabilityApiController, :state)
 

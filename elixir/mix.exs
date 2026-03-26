@@ -41,9 +41,11 @@ defmodule SymphonyElixir.MixProject do
           SymphonyElixirWeb.Router.Helpers,
           SymphonyElixirWeb.HealthController,
           SymphonyElixirWeb.MetricsController,
+          SymphonyElixirWeb.DelegationController,
           # New modules pending test coverage
           SymphonyElixir.GitHub.Client,
-          SymphonyElixir.GitHub.Adapter
+          SymphonyElixir.GitHub.Adapter,
+          SymphonyElixir.Delegation.Webhook
         ]
       ],
       test_ignore_filters: [
