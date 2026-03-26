@@ -45,7 +45,9 @@ defmodule SymphonyElixir.MixProject do
           SymphonyElixirWeb.HealthController,
           SymphonyElixir.CodingAgent,
           SymphonyElixir.CodingAgent.Codex,
-          SymphonyElixir.CodingAgent.ClaudeCode
+          SymphonyElixir.CodingAgent.ClaudeCode,
+          SymphonyElixir.GitHub.Client,
+          SymphonyElixir.GitHub.Adapter
         ]
       ],
       test_ignore_filters: [

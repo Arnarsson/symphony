@@ -62,6 +62,7 @@ defmodule SymphonyElixir.Config.Schema do
         [:kind, :endpoint, :api_key, :project_slug, :assignee, :active_states, :terminal_states],
         empty_values: []
       )
+      |> validate_inclusion(:kind, ["linear", "github", "memory"])
     end
   end
 
