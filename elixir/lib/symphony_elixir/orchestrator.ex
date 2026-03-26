@@ -1230,6 +1230,15 @@ defmodule SymphonyElixir.Orchestrator do
   defp agent_process_id_for_update(_existing, %{agent_process_id: pid}) when is_list(pid),
     do: to_string(pid)
 
+  # Legacy Codex protocol sends codex_app_server_pid
+  defp agent_process_id_for_update(_existing, %{codex_app_server_pid: pid})
+       when is_binary(pid),
+       do: pid
+
+  defp agent_process_id_for_update(_existing, %{codex_app_server_pid: pid})
+       when is_integer(pid),
+       do: Integer.to_string(pid)
+
   defp agent_process_id_for_update(existing, _update), do: existing
 
   defp session_id_for_update(_existing, %{session_id: session_id}) when is_binary(session_id),

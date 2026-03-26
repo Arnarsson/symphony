@@ -16,11 +16,11 @@ defmodule SymphonyElixirWeb.MetricsController do
 
   defp collect_metrics do
     case SymphonyElixir.Orchestrator.snapshot() do
-      %{counts: counts, codex_totals: totals, rate_limits: rate_limits} ->
+      %{running: running_list, retrying: retrying_list, agent_totals: totals, rate_limits: rate_limits} ->
         %{
           orchestrator: %{
-            running_agents: Map.get(counts, :running, 0),
-            retrying_agents: Map.get(counts, :retrying, 0)
+            running_agents: length(running_list),
+            retrying_agents: length(retrying_list)
           },
           tokens: %{
             input: Map.get(totals || %{}, :input_tokens, 0),
