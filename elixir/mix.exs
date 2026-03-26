@@ -13,6 +13,7 @@ defmodule SymphonyElixir.MixProject do
           threshold: 100
         ],
         ignore_modules: [
+          # Core modules without unit tests (integration-tested or require full runtime)
           SymphonyElixir.Config,
           SymphonyElixir.Linear.Client,
           SymphonyElixir.SpecsCheck,
@@ -23,9 +24,10 @@ defmodule SymphonyElixir.MixProject do
           SymphonyElixir.Codex.AppServer,
           SymphonyElixir.Codex.DynamicTool,
           SymphonyElixir.HttpServer,
-          SymphonyElixir.StatusDashboard,
           SymphonyElixir.LogFile,
           SymphonyElixir.Workspace,
+          SymphonyElixir.Repo,
+          # Web modules without unit tests
           SymphonyElixirWeb.DashboardLive,
           SymphonyElixirWeb.Endpoint,
           SymphonyElixirWeb.ErrorHTML,
@@ -37,15 +39,9 @@ defmodule SymphonyElixir.MixProject do
           SymphonyElixirWeb.StaticAssets,
           SymphonyElixirWeb.Router,
           SymphonyElixirWeb.Router.Helpers,
-          SymphonyElixir.Repo,
-          SymphonyElixir.Persistence,
-          SymphonyElixir.Persistence.IssueRun,
-          SymphonyElixir.Persistence.AgentSession,
-          SymphonyElixirWeb.Plugs.Auth,
           SymphonyElixirWeb.HealthController,
-          SymphonyElixir.CodingAgent,
-          SymphonyElixir.CodingAgent.Codex,
-          SymphonyElixir.CodingAgent.ClaudeCode,
+          SymphonyElixirWeb.MetricsController,
+          # New modules pending test coverage
           SymphonyElixir.GitHub.Client,
           SymphonyElixir.GitHub.Adapter
         ]

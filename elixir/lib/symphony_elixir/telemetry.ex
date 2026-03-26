@@ -106,9 +106,9 @@ defmodule SymphonyElixir.Telemetry do
   @spec measure_orchestrator_state() :: :ok
   def measure_orchestrator_state do
     case SymphonyElixir.Orchestrator.snapshot() do
-      %{counts: counts, codex_totals: totals} ->
-        running = Map.get(counts, :running, 0)
-        retrying = Map.get(counts, :retrying, 0)
+      %{running: running_list, retrying: retrying_list, agent_totals: totals} ->
+        running = length(running_list)
+        retrying = length(retrying_list)
 
         :telemetry.execute(
           [:symphony, :orchestrator, :gauge],
