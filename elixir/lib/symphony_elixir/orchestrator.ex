@@ -7,7 +7,7 @@ defmodule SymphonyElixir.Orchestrator do
   require Logger
   import Bitwise, only: [<<<: 2]
 
-  alias SymphonyElixir.{AgentRunner, Config, Persistence, StatusDashboard, Tracker, Workspace}
+  alias SymphonyElixir.{AgentRunner, CodingAgent, Config, Persistence, StatusDashboard, Tracker, Workspace}
   alias SymphonyElixir.Linear.Issue
 
   @continuation_retry_delay_ms 1_000
@@ -450,7 +450,7 @@ defmodule SymphonyElixir.Orchestrator do
   end
 
   defp reconcile_stalled_running_issues(%State{} = state) do
-    timeout_ms = Config.settings!().codex.stall_timeout_ms
+    timeout_ms = CodingAgent.agent_module().stall_timeout_ms()
 
     cond do
       timeout_ms <= 0 ->

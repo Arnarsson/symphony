@@ -42,7 +42,10 @@ defmodule SymphonyElixir.MixProject do
           SymphonyElixir.Persistence.IssueRun,
           SymphonyElixir.Persistence.AgentSession,
           SymphonyElixirWeb.Plugs.Auth,
-          SymphonyElixirWeb.HealthController
+          SymphonyElixirWeb.HealthController,
+          SymphonyElixir.CodingAgent,
+          SymphonyElixir.CodingAgent.Codex,
+          SymphonyElixir.CodingAgent.ClaudeCode
         ]
       ],
       test_ignore_filters: [
