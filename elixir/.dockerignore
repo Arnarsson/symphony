@@ -1,0 +1,9 @@
+_build/
+deps/
+.git/
+*.db
+.elixir_ls/
+cover/
+doc/
+test/
+bin/

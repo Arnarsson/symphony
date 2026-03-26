@@ -36,7 +36,11 @@ defmodule SymphonyElixir.MixProject do
           SymphonyElixirWeb.StaticAssetController,
           SymphonyElixirWeb.StaticAssets,
           SymphonyElixirWeb.Router,
-          SymphonyElixirWeb.Router.Helpers
+          SymphonyElixirWeb.Router.Helpers,
+          SymphonyElixir.Repo,
+          SymphonyElixir.Persistence,
+          SymphonyElixir.Persistence.IssueRun,
+          SymphonyElixir.Persistence.AgentSession
         ]
       ],
       test_ignore_filters: [
@@ -47,6 +51,7 @@ defmodule SymphonyElixir.MixProject do
         plt_add_apps: [:mix]
       ],
       escript: escript(),
+      releases: releases(),
       aliases: aliases(),
       deps: deps()
     ]
@@ -74,6 +79,9 @@ defmodule SymphonyElixir.MixProject do
       {:yaml_elixir, "~> 2.12"},
       {:solid, "~> 1.2"},
       {:ecto, "~> 3.13"},
+      {:ecto_sql, "~> 3.13"},
+      {:ecto_sqlite3, "~> 0.17"},
+      {:fuse, "~> 2.5"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false}
     ]
@@ -81,9 +89,19 @@ defmodule SymphonyElixir.MixProject do
 
   defp aliases do
     [
-      setup: ["deps.get"],
+      setup: ["deps.get", "ecto.create --quiet", "ecto.migrate --quiet"],
       build: ["escript.build"],
       lint: ["specs.check", "credo --strict"]
+    ]
+  end
+
+  defp releases do
+    [
+      symphony: [
+        applications: [runtime_tools: :permanent],
+        strip_beams: [keep: ["Docs"]],
+        steps: [:assemble]
+      ]
     ]
   end
 

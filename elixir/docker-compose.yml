@@ -1,0 +1,16 @@
+services:
+  symphony:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - symphony_data:/data
+      - ./WORKFLOW.md:/app/WORKFLOW.md:ro
+    environment:
+      - LINEAR_API_KEY=${LINEAR_API_KEY}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - SYMPHONY_DATABASE_PATH=/data/symphony.db
+    restart: unless-stopped
+
+volumes:
+  symphony_data:

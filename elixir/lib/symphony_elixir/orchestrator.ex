@@ -7,7 +7,7 @@ defmodule SymphonyElixir.Orchestrator do
   require Logger
   import Bitwise, only: [<<<: 2]
 
-  alias SymphonyElixir.{AgentRunner, Config, StatusDashboard, Tracker, Workspace}
+  alias SymphonyElixir.{AgentRunner, Config, Persistence, StatusDashboard, Tracker, Workspace}
   alias SymphonyElixir.Linear.Issue
 
   @continuation_retry_delay_ms 1_000
@@ -53,6 +53,9 @@ defmodule SymphonyElixir.Orchestrator do
     now_ms = System.monotonic_time(:millisecond)
     config = Config.settings!()
 
+    restored_totals = Persistence.load_codex_totals() || @empty_codex_totals
+    restored_completed = Persistence.load_completed_issue_ids()
+
     state = %State{
       poll_interval_ms: config.polling.interval_ms,
       max_concurrent_agents: config.agent.max_concurrent_agents,
@@ -60,8 +63,9 @@ defmodule SymphonyElixir.Orchestrator do
       poll_check_in_progress: false,
       tick_timer_ref: nil,
       tick_token: nil,
-      codex_totals: @empty_codex_totals,
-      codex_rate_limits: nil
+      codex_totals: restored_totals,
+      codex_rate_limits: nil,
+      completed: restored_completed
     }
 
     run_terminal_workspace_cleanup()
@@ -723,6 +727,15 @@ defmodule SymphonyElixir.Orchestrator do
             started_at: DateTime.utc_now()
           })
 
+        persist_async(fn ->
+          Persistence.upsert_issue_run(%{
+            issue_id: issue.id,
+            issue_identifier: issue.identifier,
+            status: "running",
+            worker_host: worker_host
+          })
+        end)
+
         %{
           state
           | running: running,
@@ -763,6 +776,8 @@ defmodule SymphonyElixir.Orchestrator do
   defp revalidate_issue_for_dispatch(issue, _issue_fetcher, _terminal_states), do: {:ok, issue}
 
   defp complete_issue(%State{} = state, issue_id) do
+    persist_async(fn -> Persistence.mark_issue_completed(issue_id) end)
+
     %{
       state
       | completed: MapSet.put(state.completed, issue_id),
@@ -792,6 +807,8 @@ defmodule SymphonyElixir.Orchestrator do
     error_suffix = if is_binary(error), do: " error=#{error}", else: ""
 
     Logger.warning("Retrying issue_id=#{issue_id} issue_identifier=#{identifier} in #{delay_ms}ms (attempt #{next_attempt})#{error_suffix}")
+
+    persist_async(fn -> Persistence.mark_issue_retrying(issue_id, next_attempt, error) end)
 
     %{
       state
@@ -1317,7 +1334,9 @@ defmodule SymphonyElixir.Orchestrator do
          %{input_tokens: input, output_tokens: output, total_tokens: total} = token_delta
        )
        when is_integer(input) and is_integer(output) and is_integer(total) do
-    %{state | codex_totals: apply_token_delta(codex_totals, token_delta)}
+    new_totals = apply_token_delta(codex_totals, token_delta)
+    persist_async(fn -> Persistence.save_codex_totals(new_totals) end)
+    %{state | codex_totals: new_totals}
   end
 
   defp apply_codex_token_delta(state, _token_delta), do: state
@@ -1652,4 +1671,35 @@ defmodule SymphonyElixir.Orchestrator do
   end
 
   defp integer_like(_value), do: nil
+
+  # -- Persistence helpers --
+
+  defp persist_async(fun) when is_function(fun, 0) do
+    Task.Supervisor.start_child(SymphonyElixir.TaskSupervisor, fun)
+  end
+
+  # -- Graceful shutdown --
+
+  @impl true
+  def terminate(reason, %State{} = state) do
+    Logger.info("Orchestrator shutting down reason=#{inspect(reason)}, persisting state")
+
+    if state.codex_totals do
+      Persistence.save_codex_totals(state.codex_totals)
+    end
+
+    for {issue_id, entry} <- state.running do
+      Persistence.mark_issue_status(issue_id, "retrying", %{
+        issue_identifier: entry.identifier,
+        retry_attempt: Map.get(entry, :retry_attempt, 0),
+        last_error: "orchestrator shutdown",
+        worker_host: Map.get(entry, :worker_host),
+        workspace_path: Map.get(entry, :workspace_path)
+      })
+    end
+
+    :ok
+  end
+
+  def terminate(_reason, _state), do: :ok
 end
