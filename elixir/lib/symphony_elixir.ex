@@ -27,6 +27,7 @@ defmodule SymphonyElixir.Application do
 
     children = [
       SymphonyElixir.Repo,
+      SymphonyElixir.Telemetry,
       {Phoenix.PubSub, name: SymphonyElixir.PubSub},
       {Task.Supervisor, name: SymphonyElixir.TaskSupervisor},
       SymphonyElixir.WorkflowStore,

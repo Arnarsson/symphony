@@ -121,14 +121,18 @@ defmodule SymphonyElixir.Persistence do
 
   # -- Orchestrator aggregate state --
 
-  @spec save_codex_totals(map()) :: :ok
-  def save_codex_totals(totals) when is_map(totals) do
-    save_state("codex_totals", Jason.encode!(totals))
+  @spec save_agent_totals(map()) :: :ok
+  def save_agent_totals(totals) when is_map(totals) do
+    save_state("agent_totals", Jason.encode!(totals))
   end
 
-  @spec load_codex_totals() :: map() | nil
-  def load_codex_totals do
-    case load_state("codex_totals") do
+  @doc "Legacy alias for backwards compatibility with existing DB data."
+  @spec save_codex_totals(map()) :: :ok
+  def save_codex_totals(totals), do: save_agent_totals(totals)
+
+  @spec load_agent_totals() :: map() | nil
+  def load_agent_totals do
+    case load_state("agent_totals") || load_state("codex_totals") do
       nil -> nil
       json -> Jason.decode!(json, keys: :atoms)
     end

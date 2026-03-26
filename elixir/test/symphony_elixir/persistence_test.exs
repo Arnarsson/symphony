@@ -100,23 +100,23 @@ defmodule SymphonyElixir.PersistenceTest do
     end
   end
 
-  describe "codex totals persistence" do
-    test "save and load codex totals" do
+  describe "agent totals persistence" do
+    test "save and load agent totals" do
       totals = %{input_tokens: 1000, output_tokens: 500, total_tokens: 1500, seconds_running: 60}
 
-      assert :ok = Persistence.save_codex_totals(totals)
+      assert :ok = Persistence.save_agent_totals(totals)
 
-      loaded = Persistence.load_codex_totals()
+      loaded = Persistence.load_agent_totals()
       assert loaded.input_tokens == 1000
       assert loaded.output_tokens == 500
       assert loaded.total_tokens == 1500
       assert loaded.seconds_running == 60
     end
 
-    test "load_codex_totals returns nil when no data" do
+    test "load_agent_totals returns nil when no data" do
       # This test relies on a fresh DB state for the key
       # Since we can't guarantee key absence, just verify the function works
-      result = Persistence.load_codex_totals()
+      result = Persistence.load_agent_totals()
       assert is_nil(result) or is_map(result)
     end
   end

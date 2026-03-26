@@ -22,11 +22,30 @@ defmodule SymphonyElixir.LogFile do
 
   @spec configure() :: :ok
   def configure do
-    log_file = Application.get_env(:symphony_elixir, :log_file, default_log_file())
-    max_bytes = Application.get_env(:symphony_elixir, :log_file_max_bytes, @default_max_bytes)
-    max_files = Application.get_env(:symphony_elixir, :log_file_max_files, @default_max_files)
+    case System.get_env("SYMPHONY_LOG_FORMAT") do
+      "json" ->
+        configure_json_console()
 
-    setup_disk_handler(log_file, max_bytes, max_files)
+      "stdout" ->
+        configure_json_console()
+
+      _ ->
+        log_file = Application.get_env(:symphony_elixir, :log_file, default_log_file())
+        max_bytes = Application.get_env(:symphony_elixir, :log_file_max_bytes, @default_max_bytes)
+        max_files = Application.get_env(:symphony_elixir, :log_file_max_files, @default_max_files)
+
+        setup_disk_handler(log_file, max_bytes, max_files)
+    end
+  end
+
+  defp configure_json_console do
+    :logger.update_handler_config(:default, %{
+      formatter: {SymphonyElixir.JsonLogFormatter, %{}}
+    })
+
+    :ok
+  rescue
+    _ -> :ok
   end
 
   defp setup_disk_handler(log_file, max_bytes, max_files) do

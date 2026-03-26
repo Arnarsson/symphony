@@ -16,7 +16,7 @@ defmodule SymphonyElixirWeb.Plugs.Auth do
   @spec init(keyword()) :: keyword()
   def init(opts), do: opts
 
-  @skip_auth_paths ["/health", "/ready"]
+  @skip_auth_paths ["/health", "/ready", "/metrics"]
 
   @impl true
   @spec call(Plug.Conn.t(), keyword()) :: Plug.Conn.t()
