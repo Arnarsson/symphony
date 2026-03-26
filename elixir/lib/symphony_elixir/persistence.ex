@@ -142,12 +142,16 @@ defmodule SymphonyElixir.Persistence do
   defp save_state(key, value) do
     now = DateTime.utc_now()
 
-    Repo.insert!(
-      %{key: key, value: value, inserted_at: now, updated_at: now},
-      on_conflict: [set: [value: value, updated_at: now]],
-      conflict_target: :key,
-      source: "orchestrator_state"
-    )
+    case Repo.one(from s in "orchestrator_state", where: s.key == ^key, select: s.key) do
+      nil ->
+        Repo.insert_all("orchestrator_state", [
+          %{key: key, value: value, inserted_at: now, updated_at: now}
+        ])
+
+      _exists ->
+        from(s in "orchestrator_state", where: s.key == ^key)
+        |> Repo.update_all(set: [value: value, updated_at: now])
+    end
 
     :ok
   rescue

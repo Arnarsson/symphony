@@ -1,6 +1,13 @@
 defmodule SymphonyElixir.OrchestratorStatusTest do
   use SymphonyElixir.TestSupport
 
+  setup do
+    # Clear persisted orchestrator state so agent_totals starts fresh
+    import Ecto.Query
+    SymphonyElixir.Repo.delete_all(from s in "orchestrator_state")
+    :ok
+  end
+
   test "snapshot returns :timeout when snapshot server is unresponsive" do
     server_name = Module.concat(__MODULE__, :UnresponsiveSnapshotServer)
     parent = self()

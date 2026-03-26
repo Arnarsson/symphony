@@ -85,7 +85,8 @@ defmodule SymphonyElixir.CoreTest do
     assert message =~ "codex.thread_sandbox"
 
     write_workflow_file!(Workflow.workflow_file_path(), tracker_kind: "123")
-    assert {:error, {:unsupported_tracker_kind, "123"}} = Config.validate!()
+    assert {:error, {:invalid_workflow_config, msg}} = Config.validate!()
+    assert msg =~ "tracker.kind"
   end
 
   test "current WORKFLOW.md file is valid and complete" do
