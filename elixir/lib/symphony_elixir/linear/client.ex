@@ -394,12 +394,46 @@ defmodule SymphonyElixir.Linear.Client do
     end
   end
 
+  @fuse_name :linear_api
+  @fuse_opts {{:standard, 5, 60_000}, {:reset, 30_000}}
+
   defp post_graphql_request(payload, headers) do
-    Req.post(Config.settings!().tracker.endpoint,
-      headers: headers,
-      json: payload,
-      connect_options: [timeout: 30_000]
-    )
+    case :fuse.ask(@fuse_name, :sync) do
+      :ok ->
+        result =
+          Req.post(Config.settings!().tracker.endpoint,
+            headers: headers,
+            json: payload,
+            connect_options: [timeout: 30_000],
+            receive_timeout: 30_000
+          )
+
+        case result do
+          {:error, _} = err ->
+            :fuse.melt(@fuse_name)
+            err
+
+          {:ok, %{status: status}} when status >= 500 ->
+            :fuse.melt(@fuse_name)
+            result
+
+          _ ->
+            result
+        end
+
+      :blown ->
+        Logger.warning("Linear API circuit breaker is open, skipping request")
+        {:error, :circuit_breaker_open}
+    end
+  end
+
+  @doc false
+  @spec install_fuse() :: :ok
+  def install_fuse do
+    :fuse.install(@fuse_name, @fuse_opts)
+    :ok
+  rescue
+    _ -> :ok
   end
 
   defp decode_linear_response(%{"data" => %{"issues" => %{"nodes" => nodes}}}, assignee_filter) do

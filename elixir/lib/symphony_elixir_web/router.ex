@@ -27,6 +27,12 @@ defmodule SymphonyElixirWeb.Router do
     live("/", DashboardLive, :index)
   end
 
+  # Health endpoints bypass authentication
+  scope "/", SymphonyElixirWeb do
+    get("/health", HealthController, :health)
+    get("/ready", HealthController, :ready)
+  end
+
   scope "/", SymphonyElixirWeb do
     get("/api/v1/state", ObservabilityApiController, :state)
 

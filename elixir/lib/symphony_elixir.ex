@@ -22,6 +22,7 @@ defmodule SymphonyElixir.Application do
   @impl true
   def start(_type, _args) do
     :ok = SymphonyElixir.LogFile.configure()
+    :ok = SymphonyElixir.Linear.Client.install_fuse()
 
     children = [
       SymphonyElixir.Repo,

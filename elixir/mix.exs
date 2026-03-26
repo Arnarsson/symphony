@@ -40,7 +40,9 @@ defmodule SymphonyElixir.MixProject do
           SymphonyElixir.Repo,
           SymphonyElixir.Persistence,
           SymphonyElixir.Persistence.IssueRun,
-          SymphonyElixir.Persistence.AgentSession
+          SymphonyElixir.Persistence.AgentSession,
+          SymphonyElixirWeb.Plugs.Auth,
+          SymphonyElixirWeb.HealthController
         ]
       ],
       test_ignore_filters: [
